@@ -11,10 +11,10 @@ class CharactersRemoteDataSourceImpl
 
   CharactersRemoteDataSourceImpl(this.dio);
 
-  @override
+    @override
   Future<List<CharacterModel>> getCharacters(int page) async {
     final response = await dio.get(
-      'https://rickandmortyapi.com/api/character',
+      '/character',
       queryParameters: {'page': page},
     );
 
@@ -23,4 +23,5 @@ class CharactersRemoteDataSourceImpl
         .map((json) => CharacterModel.fromJson(json))
         .toList();
   }
+
 }
