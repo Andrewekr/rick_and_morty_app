@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:rick_and_morty_app/app/theme/theme_controller.dart';
-import '../../features/characters/presentation/characters_page.dart';
-import '../../features/favorites/presentation/favorites_page.dart';
-
+import '/features/characters/presentation/characters_page.dart';
+import '/features/favorites/presentation/favorites_page.dart';
+import 'theme/theme_controller.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -16,11 +15,19 @@ class AppRouter {
         routes: [
           GoRoute(
             path: '/characters',
-            builder: (context, state) => const CharactersPage(),
+            pageBuilder: (context, state) {
+              return const NoTransitionPage(
+                child: CharactersPage(),
+              );
+            },
           ),
           GoRoute(
             path: '/favorites',
-            builder: (context, state) => const FavoritesPage(),
+            pageBuilder: (context, state) {
+              return const NoTransitionPage(
+                child: FavoritesPage(),
+              );
+            },
           ),
         ],
       ),
@@ -31,22 +38,29 @@ class AppRouter {
 class MainScaffold extends StatelessWidget {
   final Widget child;
 
-  const MainScaffold({super.key, required this.child});
+  const MainScaffold({
+    super.key,
+    required this.child,
+  });
 
-  int _index(BuildContext context) {
-    final location = GoRouterState.of(context).uri.toString();
-    if (location.startsWith('/favorites')) return 1;
+  int _currentIndex(BuildContext context) {
+    final location = GoRouterState.of(context).uri.path;
+    if (location.startsWith('/favorites')) {
+      return 1;
+    }
     return 0;
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentIndex = _index(context);
+    final currentIndex = _currentIndex(context);
 
     return Scaffold(
       appBar: AppBar(
+        title: const Text('Rick & Morty'),
         actions: [
           IconButton(
+            tooltip: 'Toggle theme',
             icon: const Icon(Icons.dark_mode),
             onPressed: ThemeController.toggleTheme,
           ),
@@ -56,7 +70,11 @@ class MainScaffold extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) {
-          context.go(index == 0 ? '/characters' : '/favorites');
+          if (index == 0) {
+            context.go('/characters');
+          } else {
+            context.go('/favorites');
+          }
         },
         items: const [
           BottomNavigationBarItem(
