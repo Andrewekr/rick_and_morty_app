@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:rick_and_morty_app/features/favorites/data/datasource/repositories/favorites_storage.dart';
-
 import '../../../di/di.dart';
-import '../../characters/data/models/character_model.dart';
 import '../../characters/data/datasource/characters_remote_data_source.dart';
+import '../../characters/data/models/character_model.dart';
+
+enum FavoritesSortType {
+  name,
+  status,
+}
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
@@ -14,35 +18,32 @@ class FavoritesPage extends StatefulWidget {
 
 class _FavoritesPageState extends State<FavoritesPage> {
   final FavoritesStorage _favoritesStorage = FavoritesStorage();
-
   late final CharactersRemoteDataSource _remoteDataSource;
 
   List<CharacterModel> _favorites = [];
   bool _loading = true;
+
+  FavoritesSortType _sortType = FavoritesSortType.name;
 
   @override
   void initState() {
     super.initState();
 
     final dio = AppDI.provideDio();
-    _remoteDataSource =
-        CharactersRemoteDataSourceImpl(dio);
+    _remoteDataSource = CharactersRemoteDataSourceImpl(dio);
 
     _loadFavorites();
   }
 
   Future<void> _loadFavorites() async {
     final favoriteIds = await _favoritesStorage.getFavorites();
-
     final List<CharacterModel> characters = [];
 
     for (final id in favoriteIds) {
       try {
-        final response = await _remoteDataSource.getCharacterById(id);
-        characters.add(response);
-      } catch (_) {
-        // если персонаж не загрузился — пропускаем
-      }
+        final character = await _remoteDataSource.getCharacterById(id);
+        characters.add(character);
+      } catch (_) {}
     }
 
     if (!mounted) return;
@@ -50,6 +51,21 @@ class _FavoritesPageState extends State<FavoritesPage> {
     setState(() {
       _favorites = characters;
       _loading = false;
+    });
+
+    _sortFavorites();
+  }
+
+  void _sortFavorites() {
+    setState(() {
+      switch (_sortType) {
+        case FavoritesSortType.name:
+          _favorites.sort((a, b) => a.name.compareTo(b.name));
+          break;
+        case FavoritesSortType.status:
+          _favorites.sort((a, b) => a.status.compareTo(b.status));
+          break;
+      }
     });
   }
 
@@ -66,6 +82,24 @@ class _FavoritesPageState extends State<FavoritesPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Favorites'),
+        actions: [
+          PopupMenuButton<FavoritesSortType>(
+            onSelected: (value) {
+              _sortType = value;
+              _sortFavorites();
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: FavoritesSortType.name,
+                child: Text('По имени'),
+              ),
+              PopupMenuItem(
+                value: FavoritesSortType.status,
+                child: Text('По статусу'),
+              ),
+            ],
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

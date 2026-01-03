@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:rick_and_morty_app/app/theme/theme_controller.dart';
 import '../../features/characters/presentation/characters_page.dart';
 import '../../features/favorites/presentation/favorites_page.dart';
+
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -27,36 +28,35 @@ class AppRouter {
   );
 }
 
-/// Общий Scaffold с BottomNavigationBar
 class MainScaffold extends StatelessWidget {
   final Widget child;
 
   const MainScaffold({super.key, required this.child});
 
-  int _calculateIndex(BuildContext context) {
+  int _index(BuildContext context) {
     final location = GoRouterState.of(context).uri.toString();
-
     if (location.startsWith('/favorites')) return 1;
     return 0;
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentIndex = _calculateIndex(context);
+    final currentIndex = _index(context);
 
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.dark_mode),
+            onPressed: ThemeController.toggleTheme,
+          ),
+        ],
+      ),
       body: child,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) {
-          switch (index) {
-            case 0:
-              context.go('/characters');
-              break;
-            case 1:
-              context.go('/favorites');
-              break;
-          }
+          context.go(index == 0 ? '/characters' : '/favorites');
         },
         items: const [
           BottomNavigationBarItem(
