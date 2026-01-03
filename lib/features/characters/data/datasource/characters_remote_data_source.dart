@@ -3,6 +3,9 @@ import '../models/character_model.dart';
 
 abstract class CharactersRemoteDataSource {
   Future<List<CharacterModel>> getCharacters(int page);
+
+  /// Получение персонажа по ID (нужно для Favorites)
+  Future<CharacterModel> getCharacterById(int id);
 }
 
 class CharactersRemoteDataSourceImpl
@@ -11,7 +14,7 @@ class CharactersRemoteDataSourceImpl
 
   CharactersRemoteDataSourceImpl(this.dio);
 
-    @override
+  @override
   Future<List<CharacterModel>> getCharacters(int page) async {
     final response = await dio.get(
       '/character',
@@ -24,4 +27,9 @@ class CharactersRemoteDataSourceImpl
         .toList();
   }
 
+  @override
+  Future<CharacterModel> getCharacterById(int id) async {
+    final response = await dio.get('/character/$id');
+    return CharacterModel.fromJson(response.data);
+  }
 }
