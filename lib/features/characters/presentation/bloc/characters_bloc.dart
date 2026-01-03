@@ -6,7 +6,7 @@ import '../../domain/repositories/characters_repository.dart';
 class CharactersBloc
     extends Bloc<CharactersEvent, CharactersState> {
   final CharactersRepository repository;
-  int _page = 1;
+  final int _page = 1;
 
   CharactersBloc(this.repository) : super(CharactersInitial()) {
     on<GetCharacters>(_onGetCharacters);
